@@ -1,7 +1,10 @@
 <!--  -->
 <template>
   <div class="movie_body">
+    <Loading v-if="isLoading"/>
+    <Scroller v-else>
     <ul>
+      <li class="pullDown">{{pullDownMsg}}</li>
       <li v-for="item in comingList" :key="item.id">
         <div class="pic_show">
           <img :src="item.img|setWH('128.180')" />
@@ -17,6 +20,7 @@
         <div class="btn_pre">预售</div>
       </li>
     </ul>
+    </Scroller>
   </div>
 </template>
 
@@ -31,7 +35,10 @@ export default {
   data() {
     //这里存放数据
     return {
-        comingList:[]
+        comingList:[],
+        pullDownMsg:'',
+        isLoading:true,
+        prevCityId:-1
     };
   },
   //监听属性 类似于data概念
@@ -39,18 +46,21 @@ export default {
   //监控data中的数据变化
   watch: {},
   //方法集合
-  methods: {},
+  methods: {
+    
+  },
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {},
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {
-      this.axios.get('/api/movieOnInfoList?cityId=10').then((res)=>{
-          var msg=res.data.msg;
-          if(msg==='ok'){
-              this.comingList=res.data.data.movieList;
-              console.log(this.comingList);
-          }
-      })
+      // this.axios.get('/api/movieOnInfoList?cityId=10').then((res)=>{
+      //     var msg=res.data.msg;
+      //     if(msg==='ok'){
+      //         this.comingList=res.data.data.movieList;
+      //         this.isLoading=false;
+      //         // console.log(this.comingList);
+      //     }
+      // })
   },
   beforeCreate() {}, //生命周期 - 创建之前
   beforeMount() {}, //生命周期 - 挂载之前
@@ -58,7 +68,20 @@ export default {
   updated() {}, //生命周期 - 更新之后
   beforeDestroy() {}, //生命周期 - 销毁之前
   destroyed() {}, //生命周期 - 销毁完成
-  activated() {} //如果页面有keep-alive缓存功能，这个函数会触发
+  activated() {
+    var cityId=this.$store.state.city.id;
+    if(cityId===this.prevCityId){return;}
+    this.isLoading=true;
+    this.axios.get('/api/movieOnInfoList?cityId='+cityId).then((res)=>{
+          var msg=res.data.msg;
+          if(msg==='ok'){
+              this.comingList=res.data.data.movieList;
+              this.isLoading=false;
+              this.prevCityId=cityId
+              // console.log(this.comingList);
+          }
+      })
+  } //如果页面有keep-alive缓存功能，这个函数会触发
 };
 </script>
 <style lang='scss' scoped>
@@ -75,4 +98,5 @@ export default {
 .movie_body .info_list img{ width:50px; position: absolute; right:10px; top: 5px;}
 .movie_body .btn_mall , .movie_body .btn_pre{ width:47px; height:27px; line-height: 28px; text-align: center; background-color: #f03d37; color: #fff; border-radius: 4px; font-size: 12px; cursor: pointer;}
 .movie_body .btn_pre{ background-color: #3c9fe6;}
+.movie_body .pullDown{margin:0;padding:0;border:none;}
 </style>
