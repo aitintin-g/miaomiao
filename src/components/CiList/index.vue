@@ -1,7 +1,10 @@
 <!--  -->
 <template>
 <div class="cinema_body">
+	<Loading v-if="isLoading"/>
+	<Scroller v-else>
 	<ul>
+		<li class="pullDown">{{pullDownMsg}}</li>
 		<li v-for="item in cinemaList" :key="item.id">
 			<div>
 				<span>{{item.nm}}</span>
@@ -17,6 +20,7 @@
 			</div>
 		</li>
 	</ul>
+	</Scroller>
 </div>
 </template>
 
@@ -31,7 +35,10 @@ components: {},
 data() {
 //这里存放数据
 return {
-    cinemaList:[]
+	cinemaList:[],
+	pullDownMsg:'',
+	isLoading:true,
+	prevCityId:-1
 };
 },
 //监听属性 类似于data概念
@@ -40,7 +47,7 @@ computed: {},
 watch: {},
 //方法集合
 methods: {
-
+	
 },
 //生命周期 - 创建完成（可以访问当前this实例）
 created() {
@@ -48,12 +55,13 @@ created() {
 },
 //生命周期 - 挂载完成（可以访问DOM元素）
 mounted() {
-	this.axios.get('/api/movieOnInfoList?cityId=10').then((res)=>{
-		var msg=res.data.msg;
-		if(msg==="ok"){
-			this.cinemaList=res.data.data.movieList;
-		}
-	});
+	// this.axios.get('/api/movieOnInfoList?cityId=10').then((res)=>{
+	// 	var msg=res.data.msg;
+	// 	if(msg==="ok"){
+	// 		this.cinemaList=res.data.data.movieList;
+	// 		this.isLoading=false;
+	// 	}
+	// });
 },
 beforeCreate() {}, //生命周期 - 创建之前
 beforeMount() {}, //生命周期 - 挂载之前
@@ -61,7 +69,20 @@ beforeUpdate() {}, //生命周期 - 更新之前
 updated() {}, //生命周期 - 更新之后
 beforeDestroy() {}, //生命周期 - 销毁之前
 destroyed() {}, //生命周期 - 销毁完成
-activated() {}, //如果页面有keep-alive缓存功能，这个函数会触发
+activated() {
+	var cityId=this.$store.state.city.id;
+	if(cityId===this.prevCityId){return;};
+	this.isLoading=true;
+
+	this.axios.get('/api/searchList?cityId=10&kw=a').then((res)=>{
+		var msg=res.data.msg;
+		if(msg==="ok"){
+			this.cinemaList=res.data.data.cinemas.list;
+			this.isLoading=false;
+			this.prevCityId=cityId;
+		}
+	});
+}, //如果页面有keep-alive缓存功能，这个函数会触发
 }
 </script>
 <style lang='scss' scoped>
@@ -78,4 +99,5 @@ activated() {}, //如果页面有keep-alive缓存功能，这个函数会触发
 .cinema_body .card div{ padding: 0 3px; height: 15px; line-height: 15px; border-radius: 2px; color: #f90; border: 1px solid #f90; font-size: 13px; margin-right: 5px;}
 .cinema_body .card div.or{ color: #f90; border: 1px solid #f90;}
 .cinema_body .card div.bl{ color: #589daf; border: 1px solid #589daf;}
+.cinema_body .pullDown{margin:0;padding:0;border:none;}
 </style>

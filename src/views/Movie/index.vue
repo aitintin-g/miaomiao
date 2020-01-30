@@ -5,7 +5,7 @@
     <div id="content">
       <div class="movie_menu">
         <router-link tag="div" to="/movie/city" class="city_name">
-          <span>大连</span>
+          <span>{{$store.state.city.nm}}</span>
           <i class="iconfont icon-lower-triangle"></i>
         </router-link>
         <div class="hot_swtich">
@@ -27,8 +27,9 @@
 <script>
 //这里可以导入其他文件（比如：组件，工具js，第三方插件js，json文件，图片文件等等）
 //例如：import 《组件名称》 from '《组件路径》';
-import Header from "@/components/Header";
-import TabBar from "@/components/TabBar";
+import Header from '@/components/Header';
+import TabBar from '@/components/TabBar';
+import {messageBox} from '@/components/JS';
 export default {
   name: "Movie",
   //import引入的组件需要注入到对象中才能使用
@@ -49,7 +50,31 @@ export default {
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {},
   //生命周期 - 挂载完成（可以访问DOM元素）
-  mounted() {},
+  mounted() {
+    setTimeout(()=>{
+      this.axios.get('/api/getLocation').then((res)=>{
+        var msg=res.data.msg;
+        if(msg==='ok'){
+          var nm=res.data.data.nm;
+          var id=res.data.data.id;
+          if(this.$store.state.city.id==id){return;};  //这里从状态管理里获取的id是字符串 id是数字 所以不用===
+          messageBox({
+            title:'定位',
+            content:nm,
+            cancel:'取消',
+            ok:'切换定位',
+            handleOk(){
+              window.localStorage.setItem('nowNm',nm);
+              window.localStorage.setItem('nowId',id);
+              window.location.reload();
+            }
+          })  
+        }  
+      })
+    },3000);
+    
+    
+  },
   beforeCreate() {}, //生命周期 - 创建之前
   beforeMount() {}, //生命周期 - 挂载之前
   beforeUpdate() {}, //生命周期 - 更新之前
